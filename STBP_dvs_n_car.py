@@ -179,7 +179,6 @@ for epoch in range(num_epochs):
             'net': snn.state_dict(),
             'acc': acc,
             'epoch': epoch,
-            'acc_record': acc_record,
         }
         if epoch>=0 and best_acc_entire_image_test < acc_entire_image_test:
            print('Saving weights and network..')
