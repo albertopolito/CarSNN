@@ -37,8 +37,8 @@ initialize_model(args.filename_net, args.thresh, args.n_decay, 2, args.batch_siz
 batch_size= args.batch_size
 
 
-data_path_train =  './../N_cars/train/'  #todo: input your data path for train dataset
-data_path_test =  './../N_cars/test/'    #todo: input your data path for test dataset
+data_path_train =  './'  #todo: input your data path for train dataset if not write in train files (car_train.txt and background_train.txt)
+data_path_test =  './'   #todo: input your data path for test dataset if not write in test files (car_test.txt and background_test.txt)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 samplingTime = args.sample_time
@@ -47,8 +47,8 @@ filename_result = args.filename_result
 
 # instantiate the train dataset and use the DataLoader function to give samples to the network 
 trainingSet = IBMGestureDataset(datasetPath=data_path_train, 
-									sampleFile_car  ='./../N_cars/car_train.txt',
-									sampleFile_background  ='./../N_cars/background_train.txt',
+									sampleFile_car  ='./N_cars/car_train.txt',
+									sampleFile_background  ='./N_cars/background_train.txt',
 									samplingTime=samplingTime,
 									sampleLength=sampleLength,
 									shift_x=args.att_window[2],
@@ -59,8 +59,8 @@ train_loader  = DataLoader(dataset=trainingSet, batch_size=batch_size, shuffle=T
 
 # instantiate the test dataset and use the DataLoader function to give samples to the network 
 testingSet = IBMGestureDataset(datasetPath=data_path_test, 
-									sampleFile_car  ='./../N_cars/car_test.txt',
-									sampleFile_background  ='./../N_cars/background_test.txt',
+									sampleFile_car  ='./N_cars/car_test.txt',
+									sampleFile_background  ='./N_cars/background_test.txt',
 									samplingTime=samplingTime,
 									sampleLength=sampleLength,
 									shift_x=args.att_window[2],
@@ -92,84 +92,98 @@ for epoch in range(num_epochs):
     len_of_sample= len(trainingSet)
     
     snn=snn.train()
-    correct_entire_image=0 # correct 
-    total_entire_image=0
+    correct_entire_image=0 # number of correct decision after sampleLngth/samplingTime predictions then choose the most predicted
+    total_entire_image=0   # number of images to predict
     
     for i, (images, labels_,labels) in enumerate(train_loader,0):
-        
+        # run only for complete batches
         len_of_sample=len_of_sample-batch_size
         if len_of_sample >= 0:
            snn.zero_grad()
            optimizer.zero_grad()
            images = images.float().to(device)
            first=0
+	   # group outputs of the same image of length sampleLength and accumulate the prediction for every samplingTime
            for j in range (0, int(sampleLength/samplingTime)):
               outputs = snn(images[:,:,:,:,j])
               if first==0:
-                 _,accumulation=outputs.cuda().max(1)
+                 _,accumulation=outputs.to(device).max(1)
                  first=first+1
               else:
                  _,predicted=outputs.max(1)
                  accumulation+=predicted
                  
               
-              loss = criterion(outputs, labels_[:,:,0,0,0].cuda())
+              loss = criterion(outputs, labels_[:,:,0,0,0].to(device))
               running_loss += loss.item()
               
               loss.backward()
            optimizer.step()
+		
+	   # see what is the most predicted class for the image
            accumulation[accumulation<(sampleLength/samplingTime)/2]=0
            accumulation[accumulation>=(sampleLength/samplingTime)/2]=1
            
+	   # calculate accuracy on the image of length sampleLength
            total_entire_image += float(labels.size(0))
-           correct_entire_image += float(accumulation.eq(labels.cuda()).sum().item())
+           correct_entire_image += float(accumulation.eq(labels.to(device)).sum().item())
            acc_entire_image_train=100*correct_entire_image/total_entire_image
         if (i+1)%20 == 0:
              print ('Epoch [%d/%d], Step [%d/%d], Loss: %.5f, Accuracy: %.5f'
                     %(epoch+1, num_epochs, i+1, len(trainingSet)//batch_size,running_loss, acc_entire_image_train))
              running_loss = 0
              print('Time elasped:', time.time()-start_time)
-    correct = 0
-    total = 0
+	
+    
+    correct = 0 # number of correct decision for each samplingTime 
+    total = 0   # number of total samplingTime predictions 
     optimizer = lr_scheduler(optimizer, epoch, args.lr_decay, args.lr_decay_value)
-    correct_entire_image=0
-    total_entire_image=0
+    correct_entire_image=0 # number of correct decision after sampleLngth/samplingTime predictions then choose the most predicted
+    total_entire_image=0   # number of images of sampleLength length
     with torch.no_grad():
         snn=snn.eval()
         len_of_sample= len(testingSet)
         for batch_idx, (inputs, labels_, targets) in enumerate(test_loader,0):
+          # run only for the complete batch size
           len_of_sample=len_of_sample-batch_size
           if len_of_sample >= 0:
             inputs = inputs.to(device)
             optimizer.zero_grad()
             first=0
+	    # group outputs of the same image of length sampleLength and accumulate the prediction for every samplingTime
             for j in range (0, int(sampleLength/samplingTime)):
               outputs = snn(inputs[:,:,:,:,j])
               if first==0:
-                 _,accumulation=outputs.cuda().max(1)
+                 _,accumulation=outputs.to(device).max(1)
                  first=first+1
               else:
                  _,pre=outputs.max(1)
                  accumulation+=pre
               
-              loss = criterion(outputs, labels_[:,:,0,0,0].cuda())
+              loss = criterion(outputs, labels_[:,:,0,0,0].to(device))
+	      # calculate the prediction at every samplingTime without grouping them in an image of sampleLength length  
               _, predicted = outputs.max(1)
               total += float(targets.size(0))
-              correct += float(predicted.eq(targets.cuda()).sum().item())
+              correct += float(predicted.eq(targets.to(device)).sum().item())
+		
+            # see the most predicted class for the image of length sampleLength
             accumulation[accumulation<(sampleLength/samplingTime)/2]=0
             accumulation[accumulation>=(sampleLength/samplingTime)/2]=1
+	
+	    # calculate accuracy on the image of length sampleLength and at every samplingTime
             total_entire_image += float(targets.size(0))
-            correct_entire_image += float(accumulation.eq(targets.cuda()).sum().item())
+            correct_entire_image += float(accumulation.eq(targets.to(device)).sum().item())
             acc_entire_image_test=100*correct_entire_image/total_entire_image
             if batch_idx %100 ==0:
                 acc = 100. * float(correct) / float(total)
                 print(batch_idx, len(test_loader),' Acc: %.5f' % acc)
 
     print('Iters:', epoch,'\n\n\n')
-    print('Test Accuracy of the model on the sampling test images: %.3f' % (100 * correct / total))
+    print('Test Accuracy of the model on the sampling time streams: %.3f' % (100 * correct / total))
     print('Test Accuracy of the model on the entire test images: %.3f' % (acc_entire_image_test))
     acc = 100. * float(correct) / float(total)
     
+    # every epoch save the results 
     if epoch % 1 == 0:
         print(acc)
         print('Saving results..')
@@ -180,6 +194,8 @@ for epoch in range(num_epochs):
             'acc': acc,
             'epoch': epoch,
         }
+	
+	# save the network and the weights only if the accuracy on entire images is better than before 
         if epoch>=0 and best_acc_entire_image_test < acc_entire_image_test:
            print('Saving weights and network..')
            best_acc_entire_image_test=acc_entire_image_test
