@@ -76,7 +76,7 @@ f.write('batch size: '+str(args.batch_size)+ ' sampling time: '+str(samplingTime
 
 # define the network and load saved weights
 snn = SCNN()
-snn = putWeight(snn)
+#snn = putWeight(snn) this part can be used to load the weigh of a previously trained network. 
 snn.to(device)
 
 # define criterion and optimizer
