@@ -2,7 +2,7 @@
 Implementation of CarSNN:  An Efficient Spiking Neural Network for Event-Based Autonomous Cars on the Loihi Neuromorphic Chip
 
 CarSNN is a novel SNN model for the “cars vs. background” classification of event-based streams implemented on neuromorphic hardware. 
-In these python script we use Spatio Temporal BackPropagation (STBP) learning rule to train the network.
+In these python script we use Spatio Temporal BackPropagation (STBP at link https://arxiv.org/pdf/1706.02609.pdf) learning rule to train the network.
 We use also three different attention windows on the input image in order to speedup the train and test process and to achieve good results.
 We adopt an accumulation strategy and we give to the network an input image every 1 ms and we predict the class. After 10 sample (so 10 ms) we choose the true classification according to the most predicted. 
 
@@ -22,6 +22,7 @@ With the script Occurrences_and_translation.m you can derive the event occurence
 
 This code is also usefull to cahnge the format of the inputs. The python code would at input .DAT files that describe the spike trace of the event streams.
 These files have 4 column with the following format:
+
 "timestamp of event in usec" "x coordinate" "y coordinate" "polarity of event (-1 or 1)"
 
 If you desire you can write your own dataset and give your images with the above format without change nothing
@@ -30,10 +31,18 @@ If you desire you can write your own dataset and give your images with the above
 
 The networks are descripted into .txt files in the net directory. You can find all the used network with and without ceil mode for the pooling layers. You can set this mode by modify the rows 250, 251 and 276 of the file spiking_model_LIF.py . 
 The network files are only files with as many rows as the layers used every row identify a layer we give some example to make it easy to understand:
-* Convolution layers row format: "input channels" "output channels" "stride" "kernel size" "padding (1 for 'same', 0 for 'valid')" "groups". Example 1 8 2 3 1 1 describe a convolution layer with 1 input channel, 2 output channel, stride of size 2x2, kernel size of 3x3, same padding and 1 for groups.
-* Dense layers row format: "size of input" "size of output". Example: 1024 2048 describe a fully connected layer with for the input 1024 neurons and for the output 2048.
-* Average pooling layers row format: "stride (number<10)". Example: 2 describe an average pooling layer with stride size equal to kernel size 2x2.
-* Dropout layers row format: "dropout percentage (number>=10)". Example: 15 describe a dropout layer with dropout percentage equal to 15%.
+* Convolution layers row format: 
+  "input channels" "output channels" "stride" "padding (1 for 'same', 0 for 'valid')" "kernel size" "groups". 
+  Example 1 8 2 1 3 1 describe a convolution layer with 1 input channel, 2 output channel, stride of size 2x2, kernel size of 3x3, same padding and 1 for groups.
+* Dense layers row format: 
+  "size of input" "size of output".
+  Example: 1024 2048 describe a fully connected layer with for the input 1024 neurons and for the output 2048.
+* Average pooling layers row format: 
+  "stride (number<10)". 
+  Example: 2 describe an average pooling layer with stride size equal to kernel size 2x2.
+* Dropout layers row format: 
+  "dropout percentage (number>=10)".
+  Example: 15 describe a dropout layer with dropout percentage equal to 15%.
 
 ### Command to run the python code and train and test the network
 
