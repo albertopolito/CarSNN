@@ -1,5 +1,21 @@
 # CarSNN
-Implementation of CarSNN:  An Efficient Spiking Neural Network for Event-Based Autonomous Cars on the Loihi Neuromorphic Chip
+Implementation of CarSNN: An Efficient Spiking Neural Network for Event-Based Autonomous Cars on the Loihi Neuromorphic Chip
+
+If you used these results in your research, please refer to the paper
+```
+A. Viale, A. Marchisio, M. Martina, G. Masera and M. Shafique, "CarSNN: An Efficient Spiking Neural Network for Event-Based Autonomous Cars on the Loihi Neuromorphic Research Processor," 2021 International Joint Conference on Neural Networks (IJCNN), Virtual Event, July 2021.
+```
+```
+@INPROCEEDINGS{Marchisio2021DVSAttacks,
+  author={A. {Viale} and A. {Marchisio} and M. {Martina} and G. {Masera} and M. {Shafique}},
+  booktitle={2021 International Joint Conference on Neural Networks (IJCNN)}, 
+  title={CarSNN: An Efficient Spiking Neural Network for Event-Based Autonomous Cars on the Loihi Neuromorphic Research Processor}, 
+  year={2021},
+  volume={},
+  number={},
+  pages={}}
+```
+
 
 CarSNN is a novel SNN model for the “cars vs. background” classification of event-based streams implemented on neuromorphic hardware. 
 In these python script we use Spatio Temporal BackPropagation (STBP at link https://arxiv.org/pdf/1706.02609.pdf) learning rule to train the network.
