@@ -81,3 +81,5 @@ Example of command to run the code:
 ```
 CUDA_VISIBLE_DEVICES=0 python STBP_dvs_n_car.py --filenet ./net/net_1_4a32c3z2a32c3z2a_100_100.txt --fileresult res_prova_input_100_100_st_1_sl_10_bs_40_15tw_2_ch_trained.txt --batch_size 40 --channel 2 --lr 1e-3 --lr_decay_epoch 20 --lr_decay_value 0.5 --threshold 0.4 --att_window 100 100 0 0 --sample_length 10 --sample_time 1
 ```
+
+Running this code, the weights of the networks are firstly initialized by the values at directories: "net_1_4a32c3z2a32c3z2a_50_50", "net_1_4a32c3z2a32c3z2a_50_50_no_ceil", "net_1_4a32c3z2a32c3z2a_100_100", "net_1_4a32c3z2a32c3z2a_100_100_no_ceil", "net_1_4a32c3z2a32c3z2a_128_128", "net_1_4a32c3z2a32c3z2a_128_128_no_ceil". These values are the results of pre-training of the networks, with neuron threshold equal to 0.4, for 50 epochs using the bias. After that the networks are trained without bias. If you are not interested to reduce the amount of memory used, you can maintain the bias and so change a bit the script "spiking_model_LIF.py". This lead to higher accuracy results.
