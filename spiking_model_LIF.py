@@ -134,10 +134,10 @@ def putWeight(net):
     kernel=kernel_init[:]
     for net_p in net_parm:
         if len(net_p) == 6:
-            net.conv[conv_index].weight.data=torch.nn.Parameter(torch.from_numpy(optimizeWeightBits(np.load('Trained_'+str(kernel[0])+'/conv'+str(conv_index)+'.npy')))) 
+            net.conv[conv_index].weight.data=torch.nn.Parameter(torch.from_numpy(optimizeWeightBits(np.load(file_net+'/conv'+str(conv_index)+'.npy')))) 
             conv_index=conv_index+1
         elif len(net_p) ==2:
-            net.fc[fc_index].weight.data=torch.nn.Parameter(torch.from_numpy(optimizeWeightBits(np.load('Trained_'+str(kernel[0])+'/fc'+str(fc_index)+'.npy'))))
+            net.fc[fc_index].weight.data=torch.nn.Parameter(torch.from_numpy(optimizeWeightBits(np.load(file_net+'/fc'+str(fc_index)+'.npy'))))
             fc_index=fc_index+1
     return net
 
@@ -311,6 +311,7 @@ def initialize_model(filename_net, thresh_f, decay_f, num_classes_f, batch_size_
         for line in openfileobject:
             vect_line=[int(s) for s in line.split() if s.isdigit()]
             net_parm.append(vect_line)
+    global file_net
     global thresh
     global decay
     global num_classes
@@ -318,6 +319,7 @@ def initialize_model(filename_net, thresh_f, decay_f, num_classes_f, batch_size_
     global learning_rate
     global kernel_init
 	
+    file_net = filename_net[6:-4]
     thresh = thresh_f
     decay = decay_f
     num_classes = num_classes_f
